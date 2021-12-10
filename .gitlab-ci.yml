@@ -7,12 +7,10 @@ stages:
 build:
   stage: build
   only:
-    - development
     - master
   when: manual
   allow_failure: false
   script:
-    - cd scout
     - mvn install -Dmaven.test.skip=true -B
   artifacts:
     paths:
@@ -30,8 +28,8 @@ deploy_dev:
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set region us-east-1
-    - aws s3 cp target/weatherPredictionService-0.0.1-SNAPSHOT.jar $AWS_S3_BUCKET_NAME/weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID.jar
-    - aws elasticbeanstalk create-application-version --application-name weatherPredictionService --version-label weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID --source-bundle S3Bucket=$AWS_S3_BUCKET_NAME,S3Key=weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID.jar
-    - aws elasticbeanstalk update-environment --application-name weatherPredictionService --environment-name weatherPredictionService-1 --version-label weatherPredictionService-dev-$CI_PIPELINE_ID
+    - aws s3 cp target/weatherPredictionService-0.0.1-SNAPSHOT.jar elasticbeanstalk-us-east-1-767618353923/gitlab-cicd/weather-prediction-be/weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID.jar
+    - aws elasticbeanstalk create-application-version --application-name PublicSapient --version-label weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID --source-bundle S3Bucket=elasticbeanstalk-us-east-1-767618353923,S3Key=gitlab-cicd/weather-prediction-be/weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID.jar
+    - aws elasticbeanstalk update-environment --application-name PublicSapient --environment-name Publicsapient-env-2 --version-label weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID
   dependencies:
     - build
