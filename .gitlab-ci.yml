@@ -1,0 +1,37 @@
+image: maven:3.6.3-jdk-8
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  only:
+    - development
+    - master
+  when: manual
+  allow_failure: false
+  script:
+    - cd scout
+    - mvn install -Dmaven.test.skip=true -B
+  artifacts:
+    paths:
+      - target/weatherPredictionService-0.0.1-SNAPSHOT.jar
+
+deploy_dev:
+  image: python:latest
+  stage: deploy
+  only:
+    - development
+  when: on_success
+  script:
+    - echo "Deploy to dev server 1"
+    - pip install awscli
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set region us-east-1
+    - aws s3 cp target/weatherPredictionService-0.0.1-SNAPSHOT.jar $AWS_S3_BUCKET_NAME/weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID.jar
+    - aws elasticbeanstalk create-application-version --application-name weatherPredictionService --version-label weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID --source-bundle S3Bucket=$AWS_S3_BUCKET_NAME,S3Key=weatherPredictionServiceGitlabCICD-dev-$CI_PIPELINE_ID.jar
+    - aws elasticbeanstalk update-environment --application-name weatherPredictionService --environment-name weatherPredictionService-1 --version-label weatherPredictionService-dev-$CI_PIPELINE_ID
+  dependencies:
+    - build
